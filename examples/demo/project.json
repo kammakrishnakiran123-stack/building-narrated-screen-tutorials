@@ -1,0 +1,49 @@
+{
+ "title": "Field Notes: add a note",
+ "source": "demo.mp4",
+ "layout": "native",
+ "primary": "en",
+ "approved": [],
+ "brand": {"accent": "#F58220", "ink": "#0F1729", "text": "#FFFFFF"},
+ "output": {"dir": "output/v1", "name": "Field_Notes_Add_Note"},
+ "languages": {
+  "en": {"name": "English", "voice": "en-IN-NeerjaNeural"},
+  "hi": {"name": "Hindi", "voice": "hi-IN-SwaraNeural", "tap_word": "टैप"}
+ },
+ "steps": [
+  {
+   "id": "signin",
+   "title": {"en": "Sign in", "hi": "साइन इन"},
+   "src": [0.0, 4.6],
+   "taps": [{"t": 3.9, "rect": [60, 700, 480, 780], "label": "Sign in"}],
+   "beats": [
+    {"at": "s0", "en": "Welcome. In this short video, you will learn to add a note in the Field Notes app.",
+     "hi": "नमस्ते। इस छोटे वीडियो में आप Field Notes ऐप में नोट जोड़ना सीखेंगे।"},
+    {"at": "h0", "en": "Your number is already filled in. Tap Sign in.",
+     "hi": "आपका नंबर पहले से भरा है। Sign in पर टैप करें।"}
+   ]
+  },
+  {
+   "id": "new",
+   "title": {"en": "Start a note", "hi": "नोट शुरू करें"},
+   "src": [4.6, 9.6],
+   "taps": [{"t": 8.9, "rect": ["c", 460, 1040, 44], "label": "+"}],
+   "beats": [
+    {"at": "s0", "en": "This is your list of notes.", "hi": "यह आपके नोट्स की सूची है।"},
+    {"at": "h0", "en": "Tap the plus button at the bottom right to start a new note.",
+     "hi": "नया नोट शुरू करने के लिए नीचे दाईं ओर प्लस बटन पर टैप करें।"}
+   ]
+  },
+  {
+   "id": "save",
+   "title": {"en": "Save the note", "hi": "नोट सेव करें"},
+   "src": [9.6, 18.0],
+   "taps": [{"t": 13.9, "rect": [60, 900, 480, 980], "label": "Save"}],
+   "beats": [
+    {"at": "s0", "en": "Type a title for the note.", "hi": "नोट के लिए एक शीर्षक टाइप करें।"},
+    {"at": "h0", "en": "Then tap Save.", "hi": "फिर Save पर टैप करें।"},
+    {"at": "s1", "en": "The note now appears in your list. That's all.", "hi": "नोट अब आपकी सूची में दिखता है। बस इतना ही।"}
+   ]
+  }
+ ]
+}
