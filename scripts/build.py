@@ -120,15 +120,27 @@ def mix(P, lang, plan, idx, total):
         ins += ["-i", idx["files"][si][k]]
         ms = int(round(t * 1000))
         flt.append(f"[{i}:a]aresample=48000,adelay={ms}|{ms}[a{i}]")
-    voice = "".join(f"[a{i}]" for i in range(n)) + (f"amix=inputs={n}:normalize=0:dropout_transition=0," if n > 1 else "") + \
-        f"apad,atrim=0:{total:.3f},loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000"
-    fade = f"afade=t=out:st={max(total - 1.2, 0):.3f}:d=1.2[out]"
+    flt.append("".join(f"[a{i}]" for i in range(n)) + (f"amix=inputs={n}:normalize=0:dropout_transition=0," if n > 1 else "") +
+               f"apad,atrim=0:{total:.3f},loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[voice]")
+    beds, ni = ["[voice]"], n                      # everything below is mixed in after the voice is normalised
     if P.get("music"):
         ins += ["-stream_loop", "-1", "-i", os.path.join(P["_root"], P["music"])]
-        flt += [voice + "[v]", f"[{n}:a]aresample=48000,volume={P.get('music_db', -26)}dB,atrim=0:{total:.3f}[m]",
-                f"[v][m]amix=inputs=2:normalize=0:duration=first,{fade}"]
-    else:
-        flt.append(voice + "," + fade)
+        flt.append(f"[{ni}:a]aresample=48000,volume={P.get('music_db', -26)}dB,atrim=0:{total:.3f}[music]")
+        beds.append("[music]")
+        ni += 1
+    if P.get("tap_sound"):
+        click = os.path.join(P["_work"], "tap.wav")
+        if not os.path.exists(click):
+            common.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=900:duration=0.07:sample_rate=48000",
+                        "-af", "afade=t=out:st=0.01:d=0.06,volume=0.35", click])
+        for j, (f0, hl) in enumerate(sorted(timeline.hold_starts(plan).values())):
+            ms = int(round((f0 / P["fps"] + hl - 0.3) * 1000))
+            ins += ["-i", click]
+            flt.append(f"[{ni}:a]adelay={ms}|{ms}[tap{j}]")
+            beds.append(f"[tap{j}]")
+            ni += 1
+    fade = f"afade=t=out:st={max(total - 1.2, 0):.3f}:d=1.2[out]"
+    flt.append("".join(beds) + (f"amix=inputs={len(beds)}:normalize=0:duration=first:dropout_transition=0," if len(beds) > 1 else "") + fade)
     out = os.path.join(P["_work"], f"audio_{lang}.m4a")
     common.run(["ffmpeg", "-v", "error", "-y", *ins, "-filter_complex", ";".join(flt), "-map", "[out]",
                 "-ar", "48000", "-c:a", "aac", "-b:a", "160k", out])

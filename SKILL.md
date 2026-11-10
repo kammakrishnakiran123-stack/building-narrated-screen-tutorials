@@ -8,7 +8,7 @@ description: Use when turning a screen recording of any phone, tablet or desktop
 ## Overview
 You are the **director**. A tutorial is made like a film: a crew of specialists, each working to a written brief, and a director who knows what each one does, gives them what they need, checks what comes back, and takes every decision that matters to the user.
 
-The engine in `scripts/` does the mechanical work from one `project.json`. Every tap freezes and is highlighted for exactly as long as its spoken line; the footage between taps speeds up to fit; each language gets its own timing. Format: `references/project-format.md`. How and why it works: `references/how-it-works.md`.
+The engine in `scripts/` does the mechanical work from one `project.json`. Every tap freezes and is highlighted for exactly as long as its spoken line; the footage between taps speeds up to fit; each language gets its own timing. Format: `references/project-format.md`. How and why it works: `references/how-it-works.md`. What good tutorials do, from a study of widely watched ones: `references/craft-notes.md`.
 
 ## The crew
 Each brief is a file in `agents/`. To delegate a stage, start a subagent with: the absolute path of its brief to read and follow, the absolute path of this skill's folder, the project file path, and the facts from the user that stage needs. If you cannot start subagents, read the brief and do the stage yourself; then tell the user the inspection was not independent.
@@ -30,7 +30,7 @@ Colourist first, then tap spotter; frame designer and screenwriter can then work
 ## The production, with the user's approvals
 Ask the user at each gate and wait. Show the named files.
 
-1. **Brief.** Learn: who watches, on what device, what they must be able to do afterwards, tone, brand colours, where it will be shared. Create a project folder holding the recording, then `build.py PROJECT init RECORDING` writes a starter project file (its voice is provisional). Languages are not decided yet beyond the primary one.
+1. **Brief.** Learn: who watches, on what device, what they must be able to do afterwards, what they need in hand before starting, tone, brand colours, where it will be shared. If the recording covers a long process, offer to split it into short parts by outcome. Create a project folder holding the recording, then `build.py PROJECT init RECORDING` writes a starter project file (its voice is provisional). Languages are not decided yet beyond the primary one.
 2. **Gate 1, the look.** Colourist, tap spotter, frame designer. Show the user `work/look_*.png` and the list of steps. Get approval of the look and the step list.
 3. **Gate 2, the script.** Screenwriter. Show the user every line beside its tap. Get approval of the wording.
 4. **Gate 3, the primary edition.** Voice director, editor, inspector. Give the user the video and the inspector's verdict, including what nobody checked. When the user approves, run `build.py PROJECT approve <code>`. Never run `approve` on your own judgment.

@@ -39,6 +39,9 @@ One file describes one tutorial. Paths are relative to the file. `build.py NEW.j
 | `approved` | Languages the user has approved. Written by `build.py approve`; do not edit by hand. | `[]` |
 | `brand` | `accent` (highlight, chip, header), `ink` (caption strip, panel), `text`. | orange, navy, white |
 | `highlight` | `box` or `spotlight` (dims the rest of the screen). | `box` |
+| `touch` | Fingertip dot that presses the control as each freeze ends. | `true` |
+| `tap_sound` | Soft click at each tap. | `false` |
+| `redact` | Regions to blur: `[{"from": 0, "to": 4.2, "rect": [x1, y1, x2, y2]}]`, in recording seconds and pixels. | none |
 | `max_zoom` | Largest zoom on a tap. Small controls zoom most. | `1.3` |
 | `tap_word` | Chip prefix: "TAP", "CLICK", or "" for the label alone. Per language too. | `TAP` |
 | `hdr`, `white_nits` | `auto`, `pq`, `hlg`, `off`; UI white level for PQ. | `auto`, `100` |

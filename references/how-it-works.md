@@ -20,7 +20,7 @@ where the LUT maps PQ code values to sRGB: PQ curve to nits, divide by the inter
 The plan is a list with one entry per output frame (which source frame, which step, which tap, how far into the freeze), plus where each voice clip and caption starts. Picture, sound, captions and checks all read that one plan, which is why they cannot drift apart.
 
 ## Picture (`render.py`, `text.py`)
-Frames are composed in Python and piped to x264 once (CRF 17): source frame, zoom window, highlight layer, progress bar, caption strip. Zoom is 1.12 to `max_zoom`, larger for smaller controls, eased in and out. Captions are split at sentence ends and commas to fit two lines, and each piece gets screen time in proportion to its length. The strip is drawn only while a line is spoken (the last piece lingers 0.4 s) and moves to the top when the tapped control is in the lower fifth of the frame.
+Frames are composed in Python and piped to x264 once (CRF 17): source frame, zoom window, highlight layer, progress bar, caption strip. Zoom is 1.12 to `max_zoom`, larger for smaller controls, eased in and out. In the last half second of each freeze a fingertip-sized dot presses the control. Regions listed in `redact` are blurred on the source frame before anything else is drawn. Captions are split at sentence ends and commas to fit two lines, and each piece gets screen time in proportion to its length. The strip is drawn only while a line is spoken (the last piece lingers 0.4 s) and moves to the top when the tapped control is in the lower fifth of the frame.
 
 Text is rendered to transparent PNGs by `render_text.swift` (CoreText), cached by content. Pillow without raqm cannot join Indic conjuncts, so the fallback warns when it meets a complex script.
 

@@ -20,4 +20,4 @@ The project file path with `source` and `crop` set.
 A tile is right when the red box surrounds the whole control, the control looks untouched (not pressed, not yet changed), and nothing covers it. Check all tiles; one wrong box is the most visible defect a tutorial can have.
 
 ## Hand back
-The number of steps and taps, the sheet paths, and a list of anything doubtful: taps you could not see clearly, mistakes or retakes in the recording that should be cut by adjusting `src`, personal data visible on screen.
+The number of steps and taps, the sheet paths, and a list of anything doubtful: taps you could not see clearly, mistakes or retakes in the recording that should be cut by adjusting `src`, and personal data visible on screen (what it is, the time range and the rectangle, ready to use as a `redact` entry).

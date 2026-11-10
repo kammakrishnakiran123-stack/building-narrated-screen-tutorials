@@ -10,7 +10,7 @@ Layouts (project "layout"):
               and caption fill a text panel on the right. A landscape source simply fills the frame.
 """
 import math, re, subprocess
-from PIL import Image, ImageDraw, ImageEnhance
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 import common, text
 
 ZIN, ZOUT = 0.4, 0.35      # zoom ease in / out, seconds
@@ -208,7 +208,32 @@ def highlight(P, G, box, circ, chip, ht, hl, acc):
             c = chip.copy()
             c.putalpha(chip.getchannel("A").point(lambda v: int(v * appear)))
         layer.alpha_composite(c, (x, int(y)))
+    left = hl - ht
+    if P["touch"] and left < 0.55:                # a fingertip-sized dot presses the control as the freeze ends
+        k = 1 - left / 0.55
+        grow = math.sin(min(k / 0.5, 1) * math.pi / 2)
+        fade = 1 - max(0.0, (k - 0.6) / 0.4)
+        r = (20 + 18 * grow) * G.u
+        cx, cy = (bx1 + bx2) / 2, (by1 + by2) / 2
+        dot = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+        ImageDraw.Draw(dot).ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 255, 255, int(165 * fade)),
+                                    outline=(40, 44, 52, int(210 * fade)), width=max(2, int(3 * G.u)))
+        layer.alpha_composite(dot)
     return layer
+
+
+def redact(P, src, t):
+    """Blur the project's private regions that are active at source time t."""
+    X0, Y0, CW, CH = P["crop"]
+    for r in P.get("redact", []):
+        if r["from"] <= t <= r["to"]:
+            x1, y1, x2, y2 = r["rect"]
+            box = (max(0, int(x1 - X0)), max(0, int(y1 - Y0)), min(CW, int(x2 - X0)), min(CH, int(y2 - Y0)))
+            if box[2] > box[0] and box[3] > box[1]:
+                reg = src.crop(box)
+                tiny = reg.resize((max(1, reg.width // 16), max(1, reg.height // 16)), Image.BILINEAR)
+                src.paste(tiny.resize(reg.size, Image.BILINEAR).filter(ImageFilter.GaussianBlur(3)), box)
+    return src
 
 
 # ---------------------------------------------------------------- frames
@@ -244,6 +269,8 @@ def render(P, G, lang, plan, per, out=None, stills=None):
             if oi not in stills:
                 continue
         src = Image.frombuffer("RGB", (CW, CH), cur, "raw", "RGB", 0, 1)
+        if P.get("redact"):
+            src = redact(P, src.copy(), sidx / FPS)
         layer = None
         if hi >= 0:
             tap = P["steps"][si]["taps"][hi]

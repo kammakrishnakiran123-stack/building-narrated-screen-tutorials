@@ -24,7 +24,7 @@ python3 ../../scripts/build.py project.json lang en
 | `SKILL.md` | The director's playbook: crew, approval gates, commands |
 | `agents/` | One brief per specialist: colourist, tap spotter, frame designer, screenwriter, voice director, editor, translator, quality inspector, delivery |
 | `scripts/` | The engine: build, tap finder, tap sheet, checks, delivery, review spreadsheet |
-| `references/` | `project.json` format, how the engine works and why |
+| `references/` | `project.json` format, how the engine works and why, craft notes from a study of widely watched tutorials |
 | `examples/demo/` | A made-up app recording and its project file |
 
 ## Layouts
