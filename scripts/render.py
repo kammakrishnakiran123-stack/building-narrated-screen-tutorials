@@ -253,7 +253,7 @@ def card_text(P, G, lang):
     """One text block per step: "2 / 5" over the step title, in the text colour."""
     N, tx, m = len(P["steps"]), text.hexrgb(P["brand"]["text"]), min(G.W, G.H)
     specs = [dict(header=f"{si + 1} / {N}", body=common.title_of(P, si, lang), w=int(G.W * 0.84), h=int(G.H * 0.3),
-                  header_px=int(m * 0.045), body_px=int(m * 0.085), min_px=int(m * 0.05), header_rgb=tx, body_rgb=tx,
+                  header_px=int(m * 0.052), body_px=int(m * 0.105), min_px=int(m * 0.06), header_rgb=tx, body_rgb=tx,
                   align="center") for si in range(N)]
     return [text.trim(p) for p in text.blocks(P, specs)]
 
@@ -268,11 +268,11 @@ def card(P, G, si, src, t, L, main, dark, txt):
     k = ease((t - (L - 0.55)) / 0.55) if t > L - 0.55 else 0.0
     bg = theme.mix(main, dark, k) if (G.panel or G.fill) else main
     canvas = Image.new("RGB", (W, H), bg)
-    th = H * 0.44
+    th = H * 0.54
     tw = th * CW / CH
     if tw > W * 0.8:
         tw, th = W * 0.8, W * 0.8 * CH / CW
-    x0, y0 = (W - tw) / 2, H * 0.11 + (1 - a) * 50 * u
+    x0, y0 = (W - tw) / 2, H * 0.065 + (1 - a) * 50 * u
     x, y = int(x0 + (sx - x0) * k), int(y0 + (sy - y0) * k)
     w, h = max(2, int(tw + (sw - tw) * k)), max(2, int(th + (sh - th) * k))
     r, b = int(30 * u * (1 - k)), int(6 * u * (1 - k))
@@ -287,7 +287,7 @@ def card(P, G, si, src, t, L, main, dark, txt):
     alpha = a * (1 - k)
     if alpha > 0.02:
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        layer.alpha_composite(txt, ((W - txt.width) // 2, int(H * 0.11 + th + H * 0.055 + (1 - a) * 28 * u)))
+        layer.alpha_composite(txt, ((W - txt.width) // 2, int(H * 0.065 + th + H * 0.05 + (1 - a) * 28 * u)))
         ld = ImageDraw.Draw(layer)
         gap, cy = 34 * u, H * 0.94
         for j in range(N):

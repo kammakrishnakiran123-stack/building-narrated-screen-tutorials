@@ -39,6 +39,8 @@ One file describes one tutorial. Paths are relative to the file. `build.py NEW.j
 | `approved` | Languages the user has approved. Written by `build.py approve`; do not edit by hand. | `[]` |
 | `brand` | `accent` (highlight, chip, header), `ink` (caption strip, panel), `text`. | orange, navy, white |
 | `highlight` | `box` or `spotlight` (dims the rest of the screen). | `box` |
+| `palette` | Colour per step: `none` (one colour, `brand.ink`), `vivid`, `calm`, `brand` (grown from `brand.accent`), or your own list of hex colours. Caption strip, panels and cards take the step's colour; the tap highlight keeps `brand.accent`. | `none` |
+| `cards`, `card_seconds` | Open each step with a full-colour card: screen preview, step number, title, progress dots. | `false`, `1.8` |
 | `touch` | Fingertip dot that presses the control as each freeze ends. | `true` |
 | `tap_sound` | Soft click at each tap. | `false` |
 | `redact` | Regions to blur: `[{"from": 0, "to": 4.2, "rect": [x1, y1, x2, y2]}]`, in recording seconds and pixels. | none |

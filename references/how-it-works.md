@@ -22,6 +22,8 @@ The plan is a list with one entry per output frame (which source frame, which st
 ## Picture (`render.py`, `text.py`)
 Frames are composed in Python and piped to x264 once (CRF 17): source frame, zoom window, highlight layer, progress bar, caption strip. Zoom is 1.12 to `max_zoom`, larger for smaller controls, eased in and out. In the last half second of each freeze a fingertip-sized dot presses the control. Regions listed in `redact` are blurred on the source frame before anything else is drawn. Captions are split at sentence ends and commas to fit two lines, and each piece gets screen time in proportion to its length. The strip is drawn only while a line is spoken (the last piece lingers 0.4 s) and moves to the top when the tapped control is in the lower fifth of the frame.
 
+With a `palette`, `theme.py` gives every step a main colour and a darker partner, darkened until white text passes contrast (3:1 on the main, 4.5:1 on the partner), and blends from one step's pair to the next over half a second. With `cards`, the timeline adds a card at the start of each step; its preview is the step's first frame, which grows into the full screen as the card ends, so the cut into the recording is seamless.
+
 Text is rendered to transparent PNGs by `render_text.swift` (CoreText), cached by content. Pillow without raqm cannot join Indic conjuncts, so the fallback warns when it meets a complex script.
 
 ## Sound and container (`build.py`)
