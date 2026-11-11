@@ -48,6 +48,13 @@ Where the analysis judged these videos hard to follow, the causes repeat: a scre
 9. **End on the result**, name it, then say what to do next.
 10. **Give the picture to the app**: the `native` layout. Captions and step titles stay, because trainees often watch with the sound off, which the YouTube videos do not allow for.
 
+## From the practice of in-app guides
+Guides built into products (walkthroughs, checklists) are designed around the same learner, and four of their habits carry over to video:
+- **Promise the length.** Saying "this takes about two minutes" up front makes a first-time user more willing to start.
+- **Show progress.** A step counter and a progress bar tell the viewer how much is left. The engine draws both.
+- **Fit the audience.** One generic guide for every role is a named mistake; a role that sees different screens gets its own video.
+- **Try it on a real beginner** before rolling it out, and mark the first success plainly at the end.
+
 ## What not to copy
 These serve the platform, not the learner:
 - Greetings, channel names, requests to subscribe, "watch till the end". The first words should be about the task. Keep the opening under 10 seconds.
