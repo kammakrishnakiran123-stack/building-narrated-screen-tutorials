@@ -30,7 +30,7 @@ Colourist first, then tap spotter; frame designer and screenwriter can then work
 ## The production, with the user's approvals
 Ask the user at each gate and wait. Show the named files.
 
-1. **Brief.** Learn: who watches, on what device, what they must be able to do afterwards, what they need in hand before starting, tone, brand colours, where it will be shared. If the recording covers a long process, offer to split it into short parts by outcome. Create a project folder holding the recording, then `build.py PROJECT init RECORDING` writes a starter project file (its voice is provisional). Languages are not decided yet beyond the primary one.
+1. **Brief.** Learn: who watches, on what device, what they must be able to do afterwards, what they need in hand before starting, the two or three mistakes new users make, tone, brand colours, where it will be shared. If the recording covers a long process, offer to split it into short parts by outcome. Create a project folder holding the recording, then `build.py PROJECT init RECORDING` writes a starter project file (its voice is provisional). Languages are not decided yet beyond the primary one.
 2. **Gate 1, the look.** Colourist, tap spotter, frame designer. Show the user `work/look_*.png` and the list of steps. Get approval of the look and the step list.
 3. **Gate 2, the script.** Screenwriter. Show the user every line beside its tap. Get approval of the wording.
 4. **Gate 3, the primary edition.** Voice director, editor, inspector. Give the user the video and the inspector's verdict, including what nobody checked. When the user approves, run `build.py PROJECT approve <code>`. Never run `approve` on your own judgment.

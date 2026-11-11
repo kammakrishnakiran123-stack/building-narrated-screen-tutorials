@@ -6,7 +6,7 @@ DEFAULTS = {
     "fps": 30, "layout": "native", "primary": "en", "hdr": "auto", "white_nits": 100,
     "highlight": "box", "touch": True, "tap_sound": False, "crop": None, "approved": [], "max_zoom": 1.3,
     "brand": {"accent": "#F58220", "ink": "#0F1729", "text": "#FFFFFF"},
-    "timing": {"hold_pre": 0.35, "hold_min": 1.6, "pad": 0.45, "quiet": 4.0, "max_speed": 8.0, "end_tail": 1.6},
+    "timing": {"hold_pre": 0.35, "hold_min": 1.6, "pad": 0.45, "quiet": 4.0, "dwell": 1.5, "max_speed": 8.0, "end_tail": 1.6},
 }
 LAYOUTS = ("native", "portrait", "landscape")
 

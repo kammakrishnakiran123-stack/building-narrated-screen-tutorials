@@ -29,3 +29,6 @@ python3 ../../scripts/build.py project.json lang en
 
 ## Layouts
 `native` gives the whole frame to the app, `portrait` is a strict 1080x1920, `landscape` is 1920x1080 with a text panel for laptops and projectors.
+
+## Contact
+Questions or suggestions: making.pontoon8d@icloud.com

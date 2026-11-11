@@ -85,6 +85,8 @@ def captions(P, G, lang, plan):
             slots.append((int(round(t * FPS)), min(nf, int(round((t + dd + linger) * FPS))), len(specs) - 1, pos))
             srt.append((t, t + dd, c))
             t += dd
+    titles = len(specs)                           # a step that starts without a line shows its title for a moment
+    specs += [{**base, "header": "", "body": head(si)} for si in range(N)]
     idle = len(specs)
     if G.panel:                                   # the text panel always shows the step title
         specs += [{**base, "header": head(si), "body": ""} for si in range(N)]
@@ -93,6 +95,12 @@ def captions(P, G, lang, plan):
     if G.panel:
         for f, fr in enumerate(plan["frames"]):
             per[f] = (paths[idle + fr[1]], "panel")
+    if not G.panel:
+        for si, st in enumerate(plan["steps"]):
+            f0 = int(round(st["start"] * FPS))
+            for f in range(f0, min(nf, f0 + int(1.8 * FPS), int(round(st["end"] * FPS)))):
+                if plan["frames"][f][2] < 0:
+                    per[f] = (paths[titles + si], "bottom")
     for f0, f1, i, pos in slots:
         for f in range(f0, f1):
             per[f] = (paths[i], pos)

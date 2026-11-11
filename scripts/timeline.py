@@ -77,8 +77,11 @@ def make_plan(P, durs):
                     play(a, b, v)
                 if D / v < need:                 # line outlasts the footage: hold the settled last frame
                     freeze(b, need - D / v)
-            elif D > 0:
-                play(a, b, min(T["max_speed"], max(1.0, D / T["quiet"])))
+            elif D > 0:                          # silent: show the result of the last tap at normal speed first,
+                d0 = min(D, T["dwell"])          # then squeeze the rest (typing, loading) into what is left
+                play(a, a + d0, 1.0)
+                if D > d0:
+                    play(a + d0, b, min(T["max_speed"], max(1.0, (D - d0) / max(T["quiet"] - d0, 0.5))))
             if seg < len(taps):
                 ln = lines.get(f"h{seg}")
                 d = ln[1] if ln else 0.0

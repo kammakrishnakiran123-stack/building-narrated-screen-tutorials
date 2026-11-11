@@ -45,7 +45,7 @@ One file describes one tutorial. Paths are relative to the file. `build.py NEW.j
 | `max_zoom` | Largest zoom on a tap. Small controls zoom most. | `1.3` |
 | `tap_word` | Chip prefix: "TAP", "CLICK", or "" for the label alone. Per language too. | `TAP` |
 | `hdr`, `white_nits` | `auto`, `pq`, `hlg`, `off`; UI white level for PQ. | `auto`, `100` |
-| `timing` | `hold_pre`, `hold_min`, `pad`, `quiet`, `max_speed`, `end_tail`. | see `scripts/common.py` |
+| `timing` | `hold_pre`, `hold_min`, `pad`, `quiet`, `dwell`, `max_speed`, `end_tail`. | see `scripts/common.py` |
 | `fps`, `crf` | Output frame rate and x264 quality. | `30`, `17` |
 | `music`, `music_db` | Optional background track and its level. | none, `-26` |
 | `font` | Font file for the non-macOS text fallback. | system |

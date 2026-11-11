@@ -129,6 +129,9 @@ def run(P, lang):
     note("every narrated tap shows its caption", not bad_cap, f"missing: {bad_cap[:6]}" if bad_cap else "")
     if silent:
         print(f"  NOTE  {len(silent)} taps have no narration line: {silent[:6]}")
+    long_holds = [f"{P['steps'][si]['id']}/{P['steps'][si]['taps'][hi]['label']} ({hl:.1f}s)" for (si, hi), (_, hl) in sorted(holds.items()) if hl > 8]
+    if long_holds:
+        print(f"  NOTE  {len(long_holds)} taps freeze the screen for more than 8 s; shorten or split the line: {long_holds[:6]}")
     sheets = common.sheet([shots[f] for f in sorted(shots)], os.path.join(P["_work"], f"verify_{lang}"), per=6, height=900)
     json.dump({"lang": lang, "pass": ok, "checks": res, "silent_taps": silent, "sheets": sheets,
                "size_mb": round(int(j["format"]["size"]) / 1e6, 1), "seconds": round(dur, 1)},

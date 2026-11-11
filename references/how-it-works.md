@@ -14,7 +14,7 @@ where the LUT maps PQ code values to sRGB: PQ curve to nits, divide by the inter
 |---|---|
 | Tap | Frozen for `max(hold_min, hold_pre + line + pad)`. Box and zoom appear `hold_pre` before the voice. |
 | Narrated stretch | Plays at `clamp(length / (line + pad), 1, max_speed)`; if the line is longer still, the stretch plays and its last frame holds until the line ends. |
-| Silent stretch | Plays at `clamp(length / quiet, 1, max_speed)`: typing, loading and retakes shrink to a few seconds. |
+| Silent stretch | The first `dwell` seconds play at normal speed so the result of the last tap can be seen; the rest is squeezed so the whole stretch takes about `quiet` seconds (never faster than `max_speed`). |
 | End | `end_tail` seconds held, last second fading out. |
 
 The plan is a list with one entry per output frame (which source frame, which step, which tap, how far into the freeze), plus where each voice clip and caption starts. Picture, sound, captions and checks all read that one plan, which is why they cannot drift apart.

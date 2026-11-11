@@ -15,6 +15,7 @@ The project file path and one language code. Do not read the builders' reports f
 3. Read the `.srt` beside the video from top to bottom. It should read as complete, ordered instructions. Note typos and lines cut mid-sentence.
 4. Pull a few frames from between taps (`ffmpeg -ss T -i FILE -frames:v 1 out.png`), including the first and the last second. Look for a stale caption, a black frame, a fast-forwarded stretch that hides something the viewer needs.
 5. Check the chapters file against the step titles.
+6. Read the notes `verify.py` prints: taps without a line, and screens frozen for more than 8 seconds. A long freeze means a line is too long for one screen; say which.
 
 ## Standards
 Report what you saw, with the frame or timestamp. "PASS" from the script covers structure; only your eyes cover whether the tutorial makes sense. If you could not check something (for example, you cannot listen to audio), say that it is unchecked.
