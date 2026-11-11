@@ -101,6 +101,11 @@ def stills(P, lang, plan, tag, limit=None):
     for t0, d, si, k in plan["cues"]:                       # and one frame for every line spoken between taps
         if P["steps"][si]["beats"][k]["at"][0] == "s":
             picks.append(int((t0 + d * 0.5) * P["fps"]))
+    seen = set()                                            # and one frame of each step card
+    for f, fr in enumerate(plan["frames"]):
+        if fr[2] == -2 and fr[1] not in seen and fr[3] >= fr[4] * 0.45:
+            seen.add(fr[1])
+            picks.append(f)
     picks = sorted(set(picks)) or [len(plan["frames"]) // 2]
     if limit and len(picks) > limit:
         picks = [picks[round(k * (len(picks) - 1) / (limit - 1))] for k in range(limit)]

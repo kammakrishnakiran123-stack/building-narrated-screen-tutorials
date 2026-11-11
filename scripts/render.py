@@ -11,7 +11,7 @@ Layouts (project "layout"):
 """
 import math, re, subprocess
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
-import common, text
+import common, text, theme
 
 ZIN, ZOUT = 0.4, 0.35      # zoom ease in / out, seconds
 
@@ -63,8 +63,9 @@ def captions(P, G, lang, plan):
     """Per-output-frame caption (png_path, position) or None, plus SRT cues [(start, end, text)]."""
     FPS, nf, N = P["fps"], len(plan["frames"]), len(P["steps"])
     acc, ink_text = text.hexrgb(P["brand"]["accent"]), text.hexrgb(P["brand"]["text"])
+    head_rgb = [int(v * 0.8) for v in ink_text] if theme.themed(P) else acc     # accent can clash with a step colour
     base = dict(w=G.text_w, h=G.text_h, header_px=G.head_px, body_px=G.body_px, min_px=int(G.body_px * 0.6),
-                header_rgb=acc, body_rgb=ink_text, align="center")
+                header_rgb=head_rgb, body_rgb=ink_text, align="center")
     head = lambda si: f"{si + 1} / {N}   ·   {common.title_of(P, si, lang)}"
     specs, slots, srt = [], [], []
     for t0, d, si, k in plan["cues"]:
@@ -95,7 +96,7 @@ def captions(P, G, lang, plan):
     if G.panel:
         for f, fr in enumerate(plan["frames"]):
             per[f] = (paths[idle + fr[1]], "panel")
-    if not G.panel:
+    if not G.panel and not P.get("cards"):
         for si, st in enumerate(plan["steps"]):
             f0 = int(round(st["start"] * FPS))
             for f in range(f0, min(nf, f0 + int(1.8 * FPS), int(round(st["end"] * FPS)))):
@@ -107,27 +108,30 @@ def captions(P, G, lang, plan):
     return per, srt
 
 
-def strip_image(P, G, path, pos, cache):
-    if (path, pos) not in cache:
-        ink = tuple(text.hexrgb(P["brand"]["ink"]))
+def strip_image(P, G, path, pos, cache, bg=None):
+    ink = tuple(bg or text.hexrgb(P["brand"]["ink"]))
+    key = (path, pos, ink)
+    if key not in cache:
         t = text.trim(path)
         if pos == "panel":
             px, py, pw, ph = G.panel
             im = Image.new("RGBA", (pw, ph), ink + (255,))
             im.alpha_composite(t, ((pw - t.width) // 2, max(0, (ph - t.height) // 2)))
-            cache[(path, pos)] = (im, (px, py))
+            cache[key] = (im, (px, py))
         else:
             pad = int(G.body_px * 0.5)
             h = t.height + 2 * pad
             im = Image.new("RGBA", (G.W, h), ink + (222,))
             im.alpha_composite(t, ((G.W - t.width) // 2, pad))
-            cache[(path, pos)] = (im, (0, G.bar if pos == "top" else G.H - h))
-    return cache[(path, pos)]
+            cache[key] = (im, (0, G.bar if pos == "top" else G.H - h))
+    return cache[key]
 
 
-def progress_bar(P, G, si):
+def progress_bar(P, G, si, bg=None):
     N = len(P["steps"])
     ink, acc, tx = (tuple(text.hexrgb(P["brand"][k])) for k in ("ink", "accent", "text"))
+    if theme.themed(P):
+        ink, acc = tuple(bg or ink), tx
     im = Image.new("RGBA", (G.W, G.bar), ink + (235,))
     d = ImageDraw.Draw(im)
     gap = 3 if N <= 40 else 1
@@ -244,6 +248,58 @@ def redact(P, src, t):
     return src
 
 
+# ---------------------------------------------------------------- step cards
+def card_text(P, G, lang):
+    """One text block per step: "2 / 5" over the step title, in the text colour."""
+    N, tx, m = len(P["steps"]), text.hexrgb(P["brand"]["text"]), min(G.W, G.H)
+    specs = [dict(header=f"{si + 1} / {N}", body=common.title_of(P, si, lang), w=int(G.W * 0.84), h=int(G.H * 0.3),
+                  header_px=int(m * 0.045), body_px=int(m * 0.085), min_px=int(m * 0.05), header_rgb=tx, body_rgb=tx,
+                  align="center") for si in range(N)]
+    return [text.trim(p) for p in text.blocks(P, specs)]
+
+
+def card(P, G, si, src, t, L, main, dark, txt):
+    """A full-colour card: a preview of the screen, the step number and title, and dots for progress.
+    It rises into place, then the preview grows until it is the screen itself."""
+    W, H, u, N = G.W, G.H, G.u, len(P["steps"])
+    _, _, CW, CH = P["crop"]
+    sx, sy, sw, sh = G.scr
+    a = ease(t / 0.45)
+    k = ease((t - (L - 0.55)) / 0.55) if t > L - 0.55 else 0.0
+    bg = theme.mix(main, dark, k) if (G.panel or G.fill) else main
+    canvas = Image.new("RGB", (W, H), bg)
+    th = H * 0.44
+    tw = th * CW / CH
+    if tw > W * 0.8:
+        tw, th = W * 0.8, W * 0.8 * CH / CW
+    x0, y0 = (W - tw) / 2, H * 0.11 + (1 - a) * 50 * u
+    x, y = int(x0 + (sx - x0) * k), int(y0 + (sy - y0) * k)
+    w, h = max(2, int(tw + (sw - tw) * k)), max(2, int(th + (sh - th) * k))
+    r, b = int(30 * u * (1 - k)), int(6 * u * (1 - k))
+    d = ImageDraw.Draw(canvas)
+    if b > 0:
+        d.rounded_rectangle([x - b, y - b + int(12 * u), x + w + b, y + h + b + int(12 * u)], radius=r + b,
+                            fill=theme.mix(bg, (0, 0, 0), 0.22 * a))
+        d.rounded_rectangle([x - b, y - b, x + w + b, y + h + b], radius=r + b, fill=theme.mix(bg, (255, 255, 255), 0.92 * a))
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, w - 1, h - 1], radius=r, fill=int(255 * a) if k == 0 else 255)
+    canvas.paste(src.resize((w, h), Image.LANCZOS), (x, y), mask)
+    alpha = a * (1 - k)
+    if alpha > 0.02:
+        layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        layer.alpha_composite(txt, ((W - txt.width) // 2, int(H * 0.11 + th + H * 0.055 + (1 - a) * 28 * u)))
+        ld = ImageDraw.Draw(layer)
+        gap, cy = 34 * u, H * 0.94
+        for j in range(N):
+            cx = W / 2 + (j - (N - 1) / 2) * gap
+            rr = (10 if j == si else 6) * u
+            ld.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=(255, 255, 255, 255 if j == si else 105))
+        if alpha < 0.99:
+            layer.putalpha(layer.getchannel("A").point(lambda v: int(v * alpha)))
+        canvas.paste(layer, (0, 0), layer)
+    return canvas
+
+
 # ---------------------------------------------------------------- frames
 def render(P, G, lang, plan, per, out=None, stills=None):
     """Encode the picture to `out`, or save PNG stills {output_frame_index: path}."""
@@ -252,7 +308,8 @@ def render(P, G, lang, plan, per, out=None, stills=None):
     _, _, CW, CH = P["crop"]
     sx, sy, sw, sh = G.scr
     ink, acc = (tuple(text.hexrgb(P["brand"][k])) for k in ("ink", "accent"))
-    chip, bars, strips = chips(P, G, lang), {}, {}
+    chip, bars, strips, tcache, prev = chips(P, G, lang), {}, {}, {}, None
+    cards = card_text(P, G, lang) if P.get("cards") else None
     dec = common.decoder(P)
     enc = None
     if out:
@@ -279,6 +336,17 @@ def render(P, G, lang, plan, per, out=None, stills=None):
         src = Image.frombuffer("RGB", (CW, CH), cur, "raw", "RGB", 0, 1)
         if P.get("redact"):
             src = redact(P, src.copy(), sidx / FPS)
+        main, dark = theme.colours_at(P, plan, oi, tcache)
+        if hi == -2:                              # step card
+            canvas = card(P, G, si, src, ht, hl, main, dark, cards[si])
+            if prev is not None and ht < 0.3:
+                canvas = Image.blend(prev, canvas, ease(ht / 0.3))
+            tail = (nf - oi) / FPS
+            if stills is not None:
+                canvas.save(stills[oi])
+            else:
+                enc.stdin.write(canvas.tobytes())
+            continue
         layer = None
         if hi >= 0:
             tap = P["steps"][si]["taps"][hi]
@@ -290,20 +358,23 @@ def render(P, G, lang, plan, per, out=None, stills=None):
         if G.fill:
             small = scr.resize((max(2, G.W // 24), max(2, G.H // 24)), Image.BILINEAR)
             canvas = ImageEnhance.Brightness(small.resize((G.W, G.H), Image.BICUBIC)).enhance(0.35)
+            if theme.themed(P):                   # tint the side areas with the step's colour
+                canvas = Image.blend(canvas, Image.new("RGB", (G.W, G.H), dark), 0.6)
             canvas.paste(scr, (sx, sy))
         elif (sw, sh) != (G.W, G.H):
-            canvas = Image.new("RGB", (G.W, G.H), ink)
+            canvas = Image.new("RGB", (G.W, G.H), dark)
             canvas.paste(scr, (sx, sy))
         else:
             canvas = scr
         if layer:
             canvas.paste(layer, (sx, sy), layer)
-        if si not in bars:
-            bars[si] = progress_bar(P, G, si)
-        canvas.paste(bars[si], (0, 0), bars[si])
+        if (si, dark) not in bars:
+            bars[(si, dark)] = progress_bar(P, G, si, dark)
+        canvas.paste(bars[(si, dark)], (0, 0), bars[(si, dark)])
         if per and per[oi]:
-            im, xy = strip_image(P, G, per[oi][0], per[oi][1], strips)
+            im, xy = strip_image(P, G, per[oi][0], per[oi][1], strips, dark)
             canvas.paste(im, xy, im)
+        prev = canvas
         tail = (nf - oi) / FPS
         if tail < 1.0:
             canvas = Image.blend(Image.new("RGB", (G.W, G.H)), canvas, max(tail, 0.0))

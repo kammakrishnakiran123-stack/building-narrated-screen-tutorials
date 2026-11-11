@@ -63,6 +63,10 @@ def make_plan(P, durs):
         lines = {b["at"]: (k, durs[si][k]) for k, b in enumerate(st.get("beats", []))}
         bounds = [s0] + [t["t"] for t in taps] + [s1]
         start = len(frames)
+        if P.get("cards"):                       # a full-colour title card opens the step (tap index -2)
+            L = P["card_seconds"]
+            for f in range(int(round(L * FPS))):
+                frames.append([int(round(s0 * FPS)), si, -2, f / FPS, L])
         for seg in range(len(taps) + 1):
             a, b = bounds[seg], bounds[seg + 1]
             D = max(b - a, 0.0)

@@ -46,7 +46,7 @@ def outline_points(G, rect, circ):
 
 
 def run(P, lang):
-    import render, text
+    import render, text, theme
     base = common.out_base(P, lang)
     mp4 = base + ".mp4"
     res, ok = [], True
@@ -99,7 +99,7 @@ def run(P, lang):
     shots = grab(mp4, list(mids.values()) + between, G.W, G.H)
     acc, ink = text.hexrgb(P["brand"]["accent"]), text.hexrgb(P["brand"]["ink"])
     sx, sy = G.scr[:2]
-    bad_box, bad_cap, silent, cache = [], [], [], {}
+    bad_box, bad_cap, silent, cache, tc = [], [], [], {}, {}
     for (si, hi), f in sorted(mids.items()):
         st = P["steps"][si]
         tap = st["taps"][hi]
@@ -114,7 +114,7 @@ def run(P, lang):
         pts = [p for p in pts if 0 <= p[0] < G.W and 0 <= p[1] < G.H]
         cap = per[f]
         if cap and cap[1] != "panel":                       # ignore outline points hidden under the caption strip
-            sim, (_, y0) = render.strip_image(P, G, cap[0], cap[1], cache)
+            sim, (_, y0) = render.strip_image(P, G, cap[0], cap[1], cache, theme.colours_at(P, plan, f, tc)[1])
             pts = [p for p in pts if not (y0 <= p[1] < y0 + sim.height)]
         hit = sum(near(im.getpixel(p), acc, 70) for p in pts) / max(1, len(pts))
         if hit < 0.55:
@@ -124,9 +124,10 @@ def run(P, lang):
         elif not cap:
             bad_cap.append(name + " (no caption planned)")
         else:
-            sim, (x0, y0) = render.strip_image(P, G, cap[0], cap[1], cache)
+            bg = theme.colours_at(P, plan, f, tc)[1]
+            sim, (x0, y0) = render.strip_image(P, G, cap[0], cap[1], cache, bg)
             corners = [(x0 + 4, y0 + 4), (x0 + sim.width - 5, y0 + 4), (x0 + 4, y0 + sim.height - 5)]
-            if not all(near(im.getpixel(c), ink, 60) for c in corners):
+            if not all(near(im.getpixel(c), bg, 60) for c in corners):
                 bad_cap.append(name)
     note("every tap shows its highlight box", not bad_box, f"{len(mids) - len(bad_box)}/{len(mids)}" + (f"; missing: {bad_box[:6]}" if bad_box else ""))
     note("every narrated tap shows its caption", not bad_cap, f"missing: {bad_cap[:6]}" if bad_cap else "")
