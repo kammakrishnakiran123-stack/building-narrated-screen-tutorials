@@ -44,6 +44,9 @@ def report(P):
         m = missing(P, l)
         state = "approved" if l in P["approved"] else ("built" if os.path.exists(common.out_base(P, l) + ".mp4") else "-")
         print(f"  {l:<3} {common.lang_name(P, l):<12} lines {beats - len(m)}/{beats}  {state}" + ("  (primary)" if l == P["primary"] else ""))
+    real = [s for s in P["steps"] if s["src"][1] > s["src"][0]]
+    if len(real) > 7:
+        print(f"  note: {len(real)} steps in one video. Viewers follow short videos better; consider splitting it into parts by outcome.")
     for st in P["steps"]:
         spoken = {b["at"] for b in st.get("beats", [])}
         for hi, t in enumerate(st.get("taps", [])):
@@ -173,8 +176,15 @@ def build_lang(P, lang, force=False):
     print(f"rendering {lang}: {total:.1f} s, {G.W}x{G.H}")
     render.render(P, G, lang, plan, per, out=vid)
     iso = P["languages"][lang].get("iso", ISO3.get(lang, "und"))
-    common.run(["ffmpeg", "-v", "error", "-y", "-i", vid, "-i", audio, "-i", base + ".srt",
-                "-map", "0:v", "-map", "1:a", "-map", "2:s", "-c:v", "copy", "-bsf:v", BT709, "-c:a", "copy",
+    meta = os.path.join(P["_work"], f"chapters_{lang}.ffmeta")      # chapter markers: viewers can jump to a step
+    with open(meta, "w", encoding="utf-8") as f:
+        f.write(";FFMETADATA1\n")
+        for si, st in enumerate(plan["steps"]):
+            if st["end"] > st["start"]:
+                name = common.title_of(P, si, lang).replace("\\", "\\\\").replace("=", "\\=").replace(";", "\\;").replace("#", "\\#")
+                f.write(f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(st['start'] * 1000)}\nEND={int(st['end'] * 1000)}\ntitle={name}\n")
+    common.run(["ffmpeg", "-v", "error", "-y", "-i", vid, "-i", audio, "-i", base + ".srt", "-i", meta,
+                "-map", "0:v", "-map", "1:a", "-map", "2:s", "-map_chapters", "3", "-c:v", "copy", "-bsf:v", BT709, "-c:a", "copy",
                 "-c:s", "mov_text", "-metadata:s:s:0", f"language={iso}", "-metadata:s:a:0", f"language={iso}",
                 "-metadata", f"title={P.get('title', P['_name'])} ({common.lang_name(P, lang)})",
                 "-t", f"{total:.3f}", "-movflags", "+faststart", base + ".mp4"])

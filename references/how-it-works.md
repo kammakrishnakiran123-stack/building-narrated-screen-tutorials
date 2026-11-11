@@ -29,7 +29,7 @@ Each beat is its own voice clip. The voice service ends every clip with about 0.
 
 x264 does not write colour tags for a raw-pipe input, so players guess. The final mux stamps them without re-encoding:
 `-bsf:v h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0`
-The mp4 carries a soft subtitle track; the same cues are written as `.srt`.
+The mp4 carries a soft subtitle track and a chapter marker for each step (players that support chapters let the viewer jump between steps); the same cues are written as `.srt`.
 
 ## Checks (`verify.py`)
 Structure: streams, tags, frame size, length against the plan, loudness, subtitle order. Then it pulls the middle frame of every tap from the encoded file and tests that the accent-coloured outline is where the plan says and that the caption strip is present. It cannot judge wording, pronunciation or whether the box is on the right control; the sheets it writes are for a person or the inspector.

@@ -87,6 +87,9 @@ def run(P, lang):
     spans = [(sec(t[:4]), sec(t[4:])) for t in times]
     good = bool(spans) and all(a < b <= total + 0.5 for a, b in spans) and all(spans[i][1] <= spans[i + 1][0] + 0.02 for i in range(len(spans) - 1))
     note("subtitle cues ordered and inside the video", good, f"{len(spans)} cues")
+    ch = json.loads(common.run(["ffprobe", "-v", "error", "-show_chapters", "-of", "json", mp4]).stdout).get("chapters", [])
+    want = sum(1 for s in plan["steps"] if s["end"] > s["start"])
+    note("chapter markers for every step", len(ch) == want, f"{len(ch)} of {want}")
 
     # every tap: highlight box and caption really visible in the encoded frames
     per, _ = render.captions(P, G, lang, plan)

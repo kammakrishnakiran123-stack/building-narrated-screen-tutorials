@@ -52,7 +52,7 @@ You give Claude a recording and say who the video is for. Claude acts as a **dir
 - Pronunciation fixes that change what the voice says without changing the caption.
 - Captions that appear only while someone is speaking and move out of the way of the control being tapped.
 - Correct rendering of Indic and other complex scripts.
-- A subtitle track inside the video, a separate `.srt` file, and a chapters list.
+- A subtitle track and chapter markers inside the video, so viewers can jump to a step, plus a separate `.srt` file and a chapters list.
 - Optional background music.
 
 **Building and checking**
@@ -91,7 +91,7 @@ Claude will ask what it needs to know, show you sample frames and the step list,
 Tips for a good recording:
 - Record the task once, slowly, without mistakes you do not want shown.
 - Turn on the phone's "show touches" option if it has one.
-- Use sample data, or tell Claude what to blur.
+- Use sample data that looks like real work (a plausible name and amount, not "Test 123"), or tell Claude what to blur.
 
 ## Try the engine without a recording
 

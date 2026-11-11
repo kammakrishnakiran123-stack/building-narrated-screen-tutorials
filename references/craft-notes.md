@@ -51,9 +51,18 @@ Where the analysis judged these videos hard to follow, the causes repeat: a scre
 ## From the practice of in-app guides
 Guides built into products (walkthroughs, checklists) are designed around the same learner, and four of their habits carry over to video:
 - **Promise the length.** Saying "this takes about two minutes" up front makes a first-time user more willing to start.
-- **Show progress.** A step counter and a progress bar tell the viewer how much is left. The engine draws both.
+- **Show progress, and let people skip.** A step counter and a progress bar tell the viewer how much is left, and chapter markers inside the file let someone who knows the first steps jump ahead. The engine does all three.
+- **Keep it short.** These guides are kept to a handful of steps. `build.py check` notes when a video has more than seven; offer to split it.
 - **Fit the audience.** One generic guide for every role is a named mistake; a role that sees different screens gets its own video.
 - **Try it on a real beginner** before rolling it out, and mark the first success plainly at the end.
+
+## Making the recording
+If the recording is not made yet, pass these on:
+- Do the task once, slowly, pausing a moment before each tap.
+- Turn on the device's "show touches" option if it has one.
+- Use sample data that looks like the viewer's real work: a plausible name, amount and date, not "Test 123". Never a real person's details.
+- Start from the screen a new user would start from, signed out if sign-in is part of the task.
+- Let error messages and permission prompts happen once; they are worth showing.
 
 ## What not to copy
 These serve the platform, not the learner:
