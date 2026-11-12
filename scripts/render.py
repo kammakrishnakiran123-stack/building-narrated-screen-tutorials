@@ -227,6 +227,8 @@ def highlight(P, G, box, circ, chip, ht, hl, acc):
         fade = 1 - max(0.0, (k - 0.6) / 0.4)
         r = (20 + 18 * grow) * G.u
         cx, cy = (bx1 + bx2) / 2, (by1 + by2) / 2
+        if not circ and bx2 - bx1 > 190 * G.u:        # wide control: press to the right of its label, never on it
+            cx, cy = bx1 + (bx2 - bx1) * 0.84, by1 + (by2 - by1) * 0.6
         dot = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
         ImageDraw.Draw(dot).ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 255, 255, int(165 * fade)),
                                     outline=(40, 44, 52, int(210 * fade)), width=max(2, int(3 * G.u)))
@@ -262,8 +264,9 @@ def card_text(P, G, lang):
 
 
 def card(P, G, si, src, t, L, main, dark, txt):
-    """A full-colour card: a preview of the screen, the step number and title, and dots for progress.
-    It rises into place, then the preview grows until it is the screen itself."""
+    """A full-colour card: the step number and title, dots for progress, and the screen shown large below
+    them, running off the card's bottom edge (a product shot, not a screenshot shrunk into a box).
+    It rises into place, then the screen grows until it fills its place in the video."""
     W, H, u, N = G.W, G.H, G.u, len(P["steps"])
     CW, CH = src.size
     sx, sy, sw, sh = G.scr
@@ -271,17 +274,18 @@ def card(P, G, si, src, t, L, main, dark, txt):
     k = ease((t - (L - 0.55)) / 0.55) if t > L - 0.55 else 0.0
     bg = theme.mix(main, dark, k) if (G.panel or G.fill) else main
     canvas = Image.new("RGB", (W, H), bg)
-    th = H * 0.54
-    tw = th * CW / CH
-    if tw > W * 0.8:
-        tw, th = W * 0.8, W * 0.8 * CH / CW
-    x0, y0 = (W - tw) / 2, H * 0.065 + (1 - a) * 50 * u
+    lg = logo(P, int(H * 0.042))
+    ty = int(H * 0.06) + (lg.height + int(H * 0.03) if lg else 0)
+    dots_y = ty + txt.height + H * 0.04
+    tw = min(W * 0.78, H * 1.05 * CW / CH)
+    th = tw * CH / CW
+    x0, y0 = (W - tw) / 2, dots_y + H * 0.05 + (1 - a) * 60 * u
     x, y = int(x0 + (sx - x0) * k), int(y0 + (sy - y0) * k)
     w, h = max(2, int(tw + (sw - tw) * k)), max(2, int(th + (sh - th) * k))
-    r, b = int(30 * u * (1 - k)), int(6 * u * (1 - k))
+    r, b = int(34 * u * (1 - k)), int(6 * u * (1 - k))
     d = ImageDraw.Draw(canvas)
     if b > 0:
-        d.rounded_rectangle([x - b, y - b + int(12 * u), x + w + b, y + h + b + int(12 * u)], radius=r + b,
+        d.rounded_rectangle([x - b, y - b + int(14 * u), x + w + b, y + h + b + int(14 * u)], radius=r + b,
                             fill=theme.mix(bg, (0, 0, 0), 0.22 * a))
         d.rounded_rectangle([x - b, y - b, x + w + b, y + h + b], radius=r + b, fill=theme.mix(bg, (255, 255, 255), 0.92 * a))
     mask = Image.new("L", (w, h), 0)
@@ -290,16 +294,15 @@ def card(P, G, si, src, t, L, main, dark, txt):
     alpha = a * (1 - k)
     if alpha > 0.02:
         layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        layer.alpha_composite(txt, ((W - txt.width) // 2, int(H * 0.065 + th + H * 0.05 + (1 - a) * 28 * u)))
+        if lg:
+            layer.alpha_composite(lg, ((W - lg.width) // 2, int(H * 0.06)))
+        layer.alpha_composite(txt, ((W - txt.width) // 2, int(ty + (1 - a) * 28 * u)))
         ld = ImageDraw.Draw(layer)
-        gap, cy = 34 * u, H * 0.94
+        gap = 34 * u
         for j in range(N):
             cx = W / 2 + (j - (N - 1) / 2) * gap
             rr = (10 if j == si else 6) * u
-            ld.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=(255, 255, 255, 255 if j == si else 105))
-        lg = logo(P, int(H * 0.05))
-        if lg:
-            layer.alpha_composite(lg, ((W - lg.width) // 2, int(H * 0.865)))
+            ld.ellipse([cx - rr, dots_y - rr, cx + rr, dots_y + rr], fill=(255, 255, 255, 255 if j == si else 105))
         if alpha < 0.99:
             layer.putalpha(layer.getchannel("A").point(lambda v: int(v * alpha)))
         canvas.paste(layer, (0, 0), layer)

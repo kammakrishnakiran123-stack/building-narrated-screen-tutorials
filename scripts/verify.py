@@ -141,7 +141,42 @@ def run(P, lang):
                "size_mb": round(int(j["format"]["size"]) / 1e6, 1), "seconds": round(dur, 1)},
               open(os.path.join(P["_work"], f"verify_{lang}.json"), "w"), indent=1, ensure_ascii=False)
     print(f"  {'PASS' if ok else 'FAIL'} overall. Tap frames to look at: {', '.join(sheets) or '(no taps)'}")
+    report(P, lang, base, ok, res, silent, long_holds, dur, int(j["format"]["size"]) / 1e6)
     return ok
+
+
+MARK = "## Reviewer's notes"
+
+
+def report(P, lang, base, ok, res, silent, long_holds, dur, mb):
+    """A handover note beside the video: what the script checked, what it cannot check, and the reviewer's
+    own findings. Rebuilding keeps whatever the reviewer wrote."""
+    path = base + "_report.md"
+    kept = ""
+    if os.path.exists(path):
+        old = open(path, encoding="utf-8").read()
+        if MARK in old:
+            kept = old.split(MARK, 1)[1].strip("\n")
+    out = [f"# Check report: {P.get('title') or P['_name']} ({common.lang_name(P, lang)})", "",
+           f"`{os.path.basename(base)}.mp4`: {int(dur // 60)}:{int(dur % 60):02d}, {mb:.1f} MB. "
+           f"Automatic checks: **{'PASS' if ok else 'FAIL'}**.", "", "## Automatic checks"]
+    out += [f"- {'PASS' if r['pass'] else 'FAIL'}: {r['check']}" + (f" ({r['detail']})" if r["detail"] else "") for r in res]
+    if silent or long_holds:
+        out += ["", "## Notes"]
+        if silent:
+            out.append(f"- {len(silent)} taps have no spoken line: {', '.join(silent)}")
+        if long_holds:
+            out.append(f"- {len(long_holds)} taps freeze the screen for more than 8 seconds: {', '.join(long_holds)}")
+    out += ["", "## Not covered by the automatic checks",
+            "- Whether each box is on the right control, and each caption matches its screen",
+            "- Wording, translation and pronunciation",
+            "- How it sounds",
+            "- The whole video, watched from start to finish",
+            "", MARK,
+            kept or "_Nobody has reviewed this edition yet. The reviewer lists here what was looked at or listened to, "
+                    "each defect with its time, and what was not checked._", ""]
+    open(path, "w", encoding="utf-8").write("\n".join(out))
+    print("  report:", path)
 
 
 if __name__ == "__main__":

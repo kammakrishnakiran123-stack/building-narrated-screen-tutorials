@@ -64,6 +64,14 @@ If the recording is not made yet, pass these on:
 - Start from the screen a new user would start from, signed out if sign-in is part of the task.
 - Let error messages and permission prompts happen once; they are worth showing.
 
+## From product-illustration practice
+People who draw product screens for a living name faults that apply to everything this skill adds around the recording:
+- **Boxed.** A whole screen shrunk into a card with even margins reads as a pasted screenshot. Show it large and let it run off an edge. The step card does this.
+- **The pointer never covers the words it clicks.** The touch dot presses beside a button's label.
+- **One frame must tell the story alone.** Most people see only the thumbnail. It is the finished result with its closing line, never a frame caught mid-change.
+- **The result holds.** The last screen stays long enough to be read before the fade.
+- **Hand over with a note** of what was checked and what was not. `verify.py` writes it beside the video and the inspector completes it.
+
 ## What not to copy
 These serve the platform, not the learner:
 - Greetings, channel names, requests to subscribe, "watch till the end". The first words should be about the task. Keep the opening under 10 seconds.

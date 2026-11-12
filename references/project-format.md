@@ -69,4 +69,4 @@ One file describes one tutorial. Paths are relative to the file. `build.py NEW.j
 Every language shares the same beats, so structure cannot drift between languages. A language is buildable when every beat has its text; `build.py check` shows the count.
 
 ## What the engine writes
-`work/` holds caches (voices, text images, LUT, plans, sheets) and can be deleted. `output.dir` holds, per language, `<name>_<Language>.mp4` with a subtitle track, `.srt`, `_chapters.txt`, after delivery `_small.mp4` and `.jpg`, and after `build.py PROJECT guide LANG` a written guide (`_guide.html`, `_guide.pdf`) and a click-through page (`_interactive.html`).
+`work/` holds caches (voices, text images, LUT, plans, sheets) and can be deleted. `output.dir` holds, per language, `<name>_<Language>.mp4` with a subtitle track, `.srt`, `_chapters.txt`, after delivery `_small.mp4` and `.jpg`, a check report (`_report.md`), and after `build.py PROJECT guide LANG` a written guide (`_guide.html`, `_guide.pdf`) and a click-through page (`_interactive.html`).

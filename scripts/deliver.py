@@ -44,9 +44,13 @@ def main():
     plan_p = os.path.join(P["_work"], f"plan_{lang}.json")
     t = dur * 0.1
     if os.path.exists(plan_p):
-        holds = sorted(timeline.hold_starts(json.load(open(plan_p))).values())
-        if holds:
-            t = (holds[0][0] + holds[0][1] * P["fps"] * 0.6) / P["fps"]
+        plan = json.load(open(plan_p))
+        holds = sorted(timeline.hold_starts(plan).values())
+        if plan["cues"]:                          # the last line is spoken over the finished result
+            t0, d = plan["cues"][-1][:2]
+            t = max(0.0, min(t0 + d * 0.6, dur - 1.3))
+        elif holds:
+            t = (holds[-1][0] + holds[-1][1] * P["fps"] * 0.6) / P["fps"]
     common.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", src, "-frames:v", "1", "-q:v", "2", base + ".jpg"])
     print("wrote", base + ".jpg")
 

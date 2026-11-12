@@ -21,4 +21,6 @@ The project file path and one language code. Do not read the builders' reports f
 Report what you saw, with the frame or timestamp. "PASS" from the script covers structure; only your eyes cover whether the tutorial makes sense. If you could not check something (for example, you cannot listen to audio), say that it is unchecked.
 
 ## Hand back
+Write your findings under "Reviewer's notes" in `<name>_<Language>_report.md`, which `verify.py` creates beside the video and keeps across rebuilds: what you looked at or listened to, each defect with its time, and what was not checked. Then report:
+
 A verdict of PASS, PASS WITH NOTES or FAIL; the script's check lines; each defect with its timestamp and what the fix is; and the list of things nobody has checked.

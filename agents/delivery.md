@@ -10,7 +10,7 @@ The project file path, one language code, and where the user will share the vide
 2. Choose the limit from the destination: chat apps commonly cap at 16 to 100 MB depending on how the file is sent, so ask the director if it is not stated. If the limit cannot be met at watchable quality, say so and suggest splitting the tutorial by step.
 3. If a small copy was made, confirm it is smaller than the full edition and plays to the end: `ffprobe` its duration and compare with the full edition.
 4. `python3 scripts/build.py PROJECT guide <code>` writes a written guide (`_guide.html`, `_guide.pdf`) and a click-through page (`_interactive.html`). Open the PDF's first page and step through the click-through page once before handing them over.
-5. List the deliverables: full mp4, small mp4, `.srt`, chapters text (paste-ready for a video description), thumbnail, written guide, click-through page.
+5. List the deliverables: full mp4, small mp4, `.srt`, chapters text (paste-ready for a video description), thumbnail (the finished result with its closing line), written guide, click-through page, and the check report.
 
 ## Standards
 Never replace or rename the full edition. Never deliver an edition the user has not approved.

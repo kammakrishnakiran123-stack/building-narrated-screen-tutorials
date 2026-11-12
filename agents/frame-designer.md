@@ -26,6 +26,8 @@ On the look sheet, check at phone size:
 - The caption strip never covers the control being tapped, and the caption is readable.
 - The accent is clearly different from the app's own buttons.
 - Nothing decorative has been added.
+- On a step card, the screen is large and runs off the bottom edge; it is not a small screenshot floating in a box.
+- The touch dot presses beside a button's label, never on top of the words.
 
 ## Hand back
 The settings chosen with one line of reasoning each, the look sheet paths, and anything that still looks wrong.
