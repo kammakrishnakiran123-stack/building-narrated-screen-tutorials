@@ -17,7 +17,8 @@ Read `references/craft-notes.md` in the skill folder first.
 5. The touch dot (`"touch": true`, default) presses each control as its freeze ends; turn it off only if it hides a small icon. `"tap_sound": true` adds a soft click at each tap; offer it to the director, since some audiences watch with sound off.
 6. Blur private details the tap spotter reported and the user wants hidden: `"redact": [{"from": T0, "to": T1, "rect": [x1, y1, x2, y2]}]`, in recording seconds and recording pixels.
 7. Optional: `max_zoom` (default 1.3; lower it for apps where context matters), a per-tap `"zoom"`, a per-tap `"chip"` text, `tap_word` ("TAP", "CLICK", or "" for label only).
-8. Run `python3 scripts/build.py PROJECT look` and open `work/look_<lang>_NN.png`. Before the script exists, the captions on the sheet are stand-ins made from the tap labels.
+8. Brand: if the user has a logo, set `brand.logo` to a PNG with a transparent background; it appears on step cards, and `"logo_corner": true` also puts it small in the top corner. For a user who makes many tutorials, put the brand settings in one brand kit file and point each project's `brand` at it.
+9. Run `python3 scripts/build.py PROJECT look` and open `work/look_<lang>_NN.png`. Before the script exists, the captions on the sheet are stand-ins made from the tap labels.
 
 ## Standards
 On the look sheet, check at phone size:

@@ -5,6 +5,7 @@
   python3 build.py PROJECT.json look [LANG]      sample frames of the look (no voices needed) -> work/look_*.png
   python3 build.py PROJECT.json preview LANG     one still per tap with real timing -> work/preview_LANG_*.png
   python3 build.py PROJECT.json lang LANG        voice, render, mix, mux and verify ONE language
+  python3 build.py PROJECT.json guide LANG       written guide (web page, PDF) and click-through page
   python3 build.py PROJECT.json approve LANG     record that the user approved this edition
   python3 build.py PROJECT.json status
 
@@ -236,6 +237,10 @@ def main():
         if len([a for a in args if not a.startswith("--")]) != 1:
             common.die("build exactly one language per run")
         sys.exit(0 if build_lang(P, lang, "--force" in args) else 2)
+    elif cmd == "guide":
+        import guide
+        check(P)
+        guide.run(P, lang or P["primary"])
     elif cmd == "approve":
         if not os.path.exists(common.out_base(P, lang or "") + ".mp4"):
             common.die(f"nothing built for '{lang}' in {P['_out']}")

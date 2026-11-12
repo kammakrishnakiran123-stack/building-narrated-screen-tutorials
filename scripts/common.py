@@ -45,8 +45,22 @@ def probe(src):
 def load(path):
     """Read project.json, fill defaults, resolve paths. Keys starting with _ are derived, never saved."""
     P = json.load(open(path, encoding="utf-8"))
+    kit_dir = os.path.dirname(os.path.abspath(path))
+    if isinstance(P.get("brand"), str):           # a brand kit shared by many projects
+        kit = os.path.join(kit_dir, P["brand"])
+        if not os.path.exists(kit):
+            die(f"brand kit not found: {kit}")
+        kit_dir = os.path.dirname(os.path.abspath(kit))
+        P["brand"] = json.load(open(kit, encoding="utf-8"))
+        for k in ("palette", "cards", "highlight"):          # a kit may also set the look; the project wins
+            if k in P["brand"] and k not in P:
+                P[k] = P["brand"][k]
     for k, v in DEFAULTS.items():
         P[k] = {**v, **P.get(k, {})} if isinstance(v, dict) else P.get(k, v)
+    if P["brand"].get("logo"):
+        P["brand"]["_logo"] = os.path.join(kit_dir, P["brand"]["logo"])
+        if not os.path.exists(P["brand"]["_logo"]):
+            die(f"logo not found: {P['brand']['_logo']}")
     P["_path"] = os.path.abspath(path)
     root = P["_root"] = os.path.dirname(P["_path"])
     P["_src"] = os.path.join(root, P["source"])
@@ -72,19 +86,37 @@ def edit(path, fn):
     json.dump(raw, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 
-def hdr_kind(P):
+def view(P, si=None):
+    """The recording a step is cut from: {src, info, crop, key}. A step may name its own "source" (and "crop"),
+    so one step can be re-recorded without touching the rest. key is "" for the project's main recording."""
+    st = P["steps"][si] if si is not None and P.get("steps") else {}
+    if not st.get("source"):
+        return {"src": P["_src"], "info": P["_info"], "crop": P["crop"], "key": ""}
+    cache = P.setdefault("_views", {})
+    key = f"{st['source']}|{st.get('crop')}"
+    if key not in cache:
+        src = os.path.join(P["_root"], st["source"])
+        info = probe(src)
+        same = (info["w"], info["h"]) == (P["_info"]["w"], P["_info"]["h"])
+        c = st.get("crop") or (P["crop"] if same else [0, 0, info["w"], info["h"]])
+        cache[key] = {"src": src, "info": info, "crop": [c[0], c[1], c[2] // 2 * 2, c[3] // 2 * 2], "key": key}
+    return cache[key]
+
+
+def hdr_kind(P, info=None):
     if P["hdr"] in ("pq", "hlg"):
         return P["hdr"]
     if P["hdr"] == "off":
         return None
-    return {"smpte2084": "pq", "arib-std-b67": "hlg"}.get(P["_info"]["trc"])
+    return {"smpte2084": "pq", "arib-std-b67": "hlg"}.get((info or P["_info"])["trc"])
 
 
-def decode_vf(P, scale=None, fps=None):
+def decode_vf(P, scale=None, fps=None, v=None):
     """ffmpeg filter chain: constant fps -> crop -> (HDR to SDR via LUT) -> optional scale. Run with cwd=work."""
-    x, y, w, h = P["crop"]
+    v = v or view(P)
+    x, y, w, h = v["crop"]
     vf = [f"fps={fps or P['fps']}", f"crop={w}:{h}:{x}:{y}"]
-    kind = hdr_kind(P)
+    kind = hdr_kind(P, v["info"])
     if kind:
         import hdr_lut
         lut = os.path.join(P["_work"], f"{kind}{int(P['white_nits'])}.cube")
@@ -97,21 +129,23 @@ def decode_vf(P, scale=None, fps=None):
     return ",".join(vf)
 
 
-def decoder(P, scale=None, fps=None, gray=False):
+def decoder(P, scale=None, fps=None, gray=False, v=None):
     """Popen that streams raw frames (rgb24 or gray) of the cropped, colour-corrected source."""
     fmt = "gray" if gray else "rgb24"
-    return subprocess.Popen(["ffmpeg", "-v", "error", "-i", P["_src"], "-vf", decode_vf(P, scale, fps) + f",format={fmt}",
+    v = v or view(P)
+    return subprocess.Popen(["ffmpeg", "-v", "error", "-i", v["src"], "-vf", decode_vf(P, scale, fps, v) + f",format={fmt}",
                              "-pix_fmt", fmt, "-f", "rawvideo", "-"], stdout=subprocess.PIPE, bufsize=10**8, cwd=P["_work"])
 
 
-def frames_at(P, times, scale=None):
+def frames_at(P, times, scale=None, v=None):
     """{time: PIL.Image} for source times (seconds), decoded sequentially so indices match the build."""
     from PIL import Image
-    w, h = scale or P["crop"][2:]
+    v = v or view(P)
+    w, h = scale or v["crop"][2:]
     want = {}
     for t in times:
         want.setdefault(int(round(t * P["fps"])), []).append(t)
-    out, i, n, p = {}, 0, w * h * 3, decoder(P, scale)
+    out, i, n, p = {}, 0, w * h * 3, decoder(P, scale, v=v)
     last = max(want) if want else -1
     buf = None
     while i <= last:

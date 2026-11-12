@@ -14,10 +14,16 @@ stretch plays and then its last frame holds until the line ends.
 
 def validate(P):
     """Structural problems in steps/taps/beats, as a list of strings."""
+    import common
     errs = []
-    dur = P["_info"]["dur"]
+    mw, mh = P["crop"][2:]
     for si, st in enumerate(P["steps"]):
         sid = st.get("id", f"#{si}")
+        v = common.view(P, si)
+        dur = v["info"]["dur"]
+        cw, ch = v["crop"][2:]
+        if abs(cw / ch - mw / mh) > 0.02 * mw / mh:
+            errs.append(f"step {sid}: its recording's screen is a different shape ({cw}x{ch}) from the main one ({mw}x{mh}); set the step's crop")
         a, b = st.get("src", [0, 0])
         if not (0 <= a <= b <= dur + 0.5):
             errs.append(f"step {sid}: src {a}-{b} outside the recording (0-{dur:.1f})")

@@ -61,6 +61,9 @@ You give Claude a recording and say who the video is for. Claude acts as a **dir
 - Automatic checks on the finished file: colour tags, length, loudness, subtitles, and that every tap really shows its box and caption.
 - A spreadsheet export so a native speaker can review and correct the lines.
 - A small share copy under a size limit, and a thumbnail.
+- A written guide (web page and PDF) and a click-through web page from the same project.
+- One step can be re-recorded on its own when the app changes.
+- A brand kit: logo, colours and font set once and reused.
 
 **Craft**
 - Writing and pacing rules drawn from a study of eleven widely watched tutorials: name the control at the touch, say what the viewer needs first, cover the common mistakes, end on the result. See [`references/craft-notes.md`](references/craft-notes.md).

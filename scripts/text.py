@@ -73,6 +73,8 @@ def blocks(P, specs):
     os.makedirs(tdir, exist_ok=True)
     paths, jobs = [], {}
     for s in specs:
+        if P["brand"].get("font"):
+            s = {**s, "font": P["brand"]["font"]}
         p = os.path.join(tdir, hashlib.sha1(json.dumps(s, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16] + ".png")
         paths.append(p)
         if not os.path.exists(p):

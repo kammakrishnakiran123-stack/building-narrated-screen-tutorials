@@ -35,7 +35,8 @@ Ask the user at each gate and wait. Show the named files.
 3. **Gate 2, the script.** Screenwriter. Show the user every line beside its tap. Get approval of the wording.
 4. **Gate 3, the primary edition.** Voice director, editor, inspector. Give the user the video and the inspector's verdict, including what nobody checked. When the user approves, run `build.py PROJECT approve <code>`. Never run `approve` on your own judgment. Then suggest a trial before any translation: show the video to one or two real first-time users, watch them do the task, and note where they pause or go wrong. Fixing those lines now costs one rebuild; fixing them later costs one per language.
 5. **Other languages, only now, one at a time.** Ask which language the user wants next. Translator, voice director, editor, inspector for that language alone; show it; `approve` on the user's yes; then ask about the next. Changes to the primary script after this point mean a new version for every language already built.
-6. **Delivery** for each approved edition the user wants to share.
+6. **Delivery** for each approved edition the user wants to share. Offer the written guide and the click-through page with it: they come from the same project at no extra work.
+7. **When the app changes later.** Ask the user to record only the changed step, set that step's `source` to the new file, re-spot its taps, and rebuild into a new `output.dir`. The other steps, the script and the translations stay.
 
 ## Commands
 `PROJECT` is the path to the project's `project.json`. The scripts live in this skill's folder, so call them by absolute path from anywhere.
@@ -43,6 +44,7 @@ Ask the user at each gate and wait. Show the named files.
 python3 scripts/build.py PROJECT init RECORDING | check | look | preview LANG | lang LANG | approve LANG | status
 python3 scripts/find_taps.py PROJECT      python3 scripts/tap_sheet.py PROJECT
 python3 scripts/verify.py PROJECT LANG    python3 scripts/deliver.py PROJECT LANG [MAX_MB]
+python3 scripts/build.py PROJECT guide LANG     # written guide (web page, PDF) and click-through page
 python3 scripts/review_csv.py PROJECT export|import LANG [FILE]
 ```
 Needs ffmpeg, Python 3 with numpy and Pillow, and `edge-tts` (`python3 -m pip install edge-tts`). If edge-tts lives in a different Python, set `"tts_python"` in the project; that Python needs nothing else. On macOS, text is drawn with the system renderer so all scripts shape correctly; elsewhere Pillow needs raqm for Indic scripts. Try the engine on `examples/demo/`.

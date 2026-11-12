@@ -33,6 +33,12 @@ x264 does not write colour tags for a raw-pipe input, so players guess. The fina
 `-bsf:v h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0`
 The mp4 carries a soft subtitle track and a chapter marker for each step (players that support chapters let the viewer jump between steps); the same cues are written as `.srt`.
 
+## Guides (`guide.py`)
+The project already holds a frame, a box and a line for every tap, so the same data makes two more things. The written guide is one numbered screenshot per tap with its line (and the line spoken just before it as context), as a web page and as A4 pages. The click-through page shows each screenshot with a pulsing hotspot; tapping the hotspot moves on, tapping elsewhere makes it shake, and the voice clips play if the edition has been built. Both web pages are single files with everything inside, so they can be sent like any attachment. Blurred regions are blurred in them too.
+
+## One step from another recording
+A step with its own `source` is decoded from that file; the frame loop restarts the decoder when the recording changes. Everything else (timing, captions, checks) is unaware of it.
+
 ## Checks (`verify.py`)
 Structure: streams, tags, frame size, length against the plan, loudness, subtitle order. Then it pulls the middle frame of every tap from the encoded file and tests that the accent-coloured outline is where the plan says and that the caption strip is present. It cannot judge wording, pronunciation or whether the box is on the right control; the sheets it writes are for a person or the inspector.
 

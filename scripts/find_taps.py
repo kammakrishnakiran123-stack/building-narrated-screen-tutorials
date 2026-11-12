@@ -1,6 +1,6 @@
 """Suggest tap moments: instants where a still screen suddenly changes.
 
-usage: python3 find_taps.py PROJECT.json [START END]
+usage: python3 find_taps.py PROJECT.json [START END] [--source OTHER_RECORDING]
 Needs only "source" (and "crop") in the project. Writes work/tap_candidates.json
   [{"t": seconds (last still frame = the frame to freeze on), "strength": share of pixels that changed,
     "rect": [x1,y1,x2,y2] guess in source pixels, or null when the whole screen changed}]
@@ -21,7 +21,16 @@ CHANGED, QUIET, STILL_FRAMES = 0.0015, 0.0005, 5     # pixel shares; frames of s
 
 def main():
     P = common.load(sys.argv[1])
-    t0, t1 = (float(sys.argv[2]), float(sys.argv[3])) if len(sys.argv) > 3 else (0.0, P["_info"]["dur"])
+    args = sys.argv[2:]
+    if "--source" in args:                        # a re-recorded step: look at that file instead
+        i = args.index("--source")
+        P["source"], P["_src"] = args[i + 1], os.path.join(P["_root"], args[i + 1])
+        info = common.probe(P["_src"])
+        if (info["w"], info["h"]) != (P["_info"]["w"], P["_info"]["h"]):
+            P["crop"] = [0, 0, info["w"] // 2 * 2, info["h"] // 2 * 2]
+        P["_info"] = info
+        del args[i:i + 2]
+    t0, t1 = (float(args[0]), float(args[1])) if len(args) > 1 else (0.0, P["_info"]["dur"])
     x, y, w, h = P["crop"]
     sh = max(2, round(h * SW / w) // 2 * 2)
     p = common.decoder(P, scale=(SW, sh), fps=FPS, gray=True)

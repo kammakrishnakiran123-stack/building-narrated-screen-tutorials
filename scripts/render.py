@@ -73,7 +73,7 @@ def captions(P, G, lang, plan):
         b = st["beats"][k]
         pos = "panel" if G.panel else "bottom"
         if not G.panel and b["at"][0] == "h":      # keep the strip off the control being tapped
-            _, box, _ = tap_view(P, G, st["taps"][int(b["at"][1:])], 1.0, 2.0)
+            _, box, _ = tap_view(P, G, st["taps"][int(b["at"][1:])], 1.0, 2.0, common.view(P, si)["crop"])
             if G.scr[1] + box[3] + 30 * G.u > G.H * 0.8:
                 pos = "top"
         cs = text.chunks(b[lang], G.maxlen(b[lang]))
@@ -169,9 +169,9 @@ def chips(P, G, lang):
     return out
 
 
-def tap_view(P, G, tap, ht, hl):
+def tap_view(P, G, tap, ht, hl, crop=None):
     """Zoomed source window (for resize box=) and the tap box in screen-local output pixels."""
-    X0, Y0, CW, CH = P["crop"]
+    X0, Y0, CW, CH = crop or P["crop"]
     (x1, y1, x2, y2), circ = common.rect_of(tap["rect"])
     x1, x2, y1, y2 = x1 - X0, x2 - X0, y1 - Y0, y2 - Y0
     zmax = tap.get("zoom") or min(P["max_zoom"], max(min(1.12, P["max_zoom"]), 0.92 * CW / max(x2 - x1, 1)))
@@ -234,11 +234,14 @@ def highlight(P, G, box, circ, chip, ht, hl, acc):
     return layer
 
 
-def redact(P, src, t):
-    """Blur the project's private regions that are active at source time t."""
-    X0, Y0, CW, CH = P["crop"]
+def redact(P, src, t, v=None):
+    """Blur the project's private regions that are active at source time t. An entry applies to the main
+    recording unless it names the step recording it belongs to with "source"."""
+    v = v or common.view(P)
+    X0, Y0, CW, CH = v["crop"]
+    name = v["key"].split("|")[0]
     for r in P.get("redact", []):
-        if r["from"] <= t <= r["to"]:
+        if r.get("source", "") == name and r["from"] <= t <= r["to"]:
             x1, y1, x2, y2 = r["rect"]
             box = (max(0, int(x1 - X0)), max(0, int(y1 - Y0)), min(CW, int(x2 - X0)), min(CH, int(y2 - Y0)))
             if box[2] > box[0] and box[3] > box[1]:
@@ -262,7 +265,7 @@ def card(P, G, si, src, t, L, main, dark, txt):
     """A full-colour card: a preview of the screen, the step number and title, and dots for progress.
     It rises into place, then the preview grows until it is the screen itself."""
     W, H, u, N = G.W, G.H, G.u, len(P["steps"])
-    _, _, CW, CH = P["crop"]
+    CW, CH = src.size
     sx, sy, sw, sh = G.scr
     a = ease(t / 0.45)
     k = ease((t - (L - 0.55)) / 0.55) if t > L - 0.55 else 0.0
@@ -294,10 +297,24 @@ def card(P, G, si, src, t, L, main, dark, txt):
             cx = W / 2 + (j - (N - 1) / 2) * gap
             rr = (10 if j == si else 6) * u
             ld.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=(255, 255, 255, 255 if j == si else 105))
+        lg = logo(P, int(H * 0.05))
+        if lg:
+            layer.alpha_composite(lg, ((W - lg.width) // 2, int(H * 0.865)))
         if alpha < 0.99:
             layer.putalpha(layer.getchannel("A").point(lambda v: int(v * alpha)))
         canvas.paste(layer, (0, 0), layer)
     return canvas
+
+
+def logo(P, height, _cache={}):
+    """The brand logo scaled to a height, or None."""
+    path = P["brand"].get("_logo")
+    if not path:
+        return None
+    if (path, height) not in _cache:
+        im = Image.open(path).convert("RGBA")
+        _cache[(path, height)] = im.resize((max(1, round(im.width * height / im.height)), height), Image.LANCZOS)
+    return _cache[(path, height)]
 
 
 # ---------------------------------------------------------------- frames
@@ -305,12 +322,11 @@ def render(P, G, lang, plan, per, out=None, stills=None):
     """Encode the picture to `out`, or save PNG stills {output_frame_index: path}."""
     frames = plan["frames"]
     nf, FPS = len(frames), P["fps"]
-    _, _, CW, CH = P["crop"]
     sx, sy, sw, sh = G.scr
     ink, acc = (tuple(text.hexrgb(P["brand"][k])) for k in ("ink", "accent"))
     chip, bars, strips, tcache, prev = chips(P, G, lang), {}, {}, {}, None
     cards = card_text(P, G, lang) if P.get("cards") else None
-    dec = common.decoder(P)
+    dec, vkey, v = None, None, None
     enc = None
     if out:
         enc = subprocess.Popen(
@@ -318,9 +334,20 @@ def render(P, G, lang, plan, per, out=None, stills=None):
              "-i", "-", "-vf", "scale=out_color_matrix=bt709:out_range=tv:flags=accurate_rnd+full_chroma_int,format=yuv420p",
              "-c:v", "libx264", "-preset", "medium", "-crf", str(P.get("crf", 17)), "-profile:v", "high",
              "-x264-params", "aq-mode=3", out], stdin=subprocess.PIPE, bufsize=10**8)
-    cur_idx, cur, fsz = -1, None, CW * CH * 3
+    cur_idx, cur = -1, None
+    corner = logo(P, int(G.H * 0.03)) if P["brand"].get("logo_corner") else None
     last = max(stills) if stills else None
     for oi, (sidx, si, hi, ht, hl) in enumerate(frames):
+        if stills is not None and oi > last:
+            break
+        nv = common.view(P, si)
+        if nv["key"] != vkey:                     # this step is cut from a different recording
+            if dec:
+                dec.kill()
+            v, vkey = nv, nv["key"]
+            dec, cur_idx, cur = common.decoder(P, v=v), -1, None
+            CW, CH = v["crop"][2:]
+            fsz = CW * CH * 3
         while cur_idx < sidx:
             b = dec.stdout.read(fsz)
             if len(b) < fsz:
@@ -335,7 +362,7 @@ def render(P, G, lang, plan, per, out=None, stills=None):
                 continue
         src = Image.frombuffer("RGB", (CW, CH), cur, "raw", "RGB", 0, 1)
         if P.get("redact"):
-            src = redact(P, src.copy(), sidx / FPS)
+            src = redact(P, src.copy(), sidx / FPS, v)
         main, dark = theme.colours_at(P, plan, oi, tcache)
         if hi == -2:                              # step card
             canvas = card(P, G, si, src, ht, hl, main, dark, cards[si])
@@ -350,8 +377,8 @@ def render(P, G, lang, plan, per, out=None, stills=None):
         layer = None
         if hi >= 0:
             tap = P["steps"][si]["taps"][hi]
-            view, box, circ = tap_view(P, G, tap, ht, hl)
-            scr = src.resize((sw, sh), Image.LANCZOS, box=view)
+            win, box, circ = tap_view(P, G, tap, ht, hl, v["crop"])
+            scr = src.resize((sw, sh), Image.LANCZOS, box=win)
             layer = highlight(P, G, box, circ, chip.get((si, hi)), ht, hl, acc)
         else:
             scr = src.resize((sw, sh), Image.LANCZOS)
@@ -374,6 +401,10 @@ def render(P, G, lang, plan, per, out=None, stills=None):
         if per and per[oi]:
             im, xy = strip_image(P, G, per[oi][0], per[oi][1], strips, dark)
             canvas.paste(im, xy, im)
+        if corner and not (per and per[oi] and per[oi][1] == "top"):      # never over a caption
+            faint = corner.copy()
+            faint.putalpha(corner.getchannel("A").point(lambda a: int(a * 0.7)))
+            canvas.paste(faint, (G.W - corner.width - int(14 * G.u), G.bar + int(12 * G.u)), faint)
         prev = canvas
         tail = (nf - oi) / FPS
         if tail < 1.0:
@@ -384,7 +415,8 @@ def render(P, G, lang, plan, per, out=None, stills=None):
             enc.stdin.write(canvas.tobytes())
             if oi % 1500 == 0:
                 print(f"  {lang}: frame {oi}/{nf}", flush=True)
-    dec.kill()
+    if dec:
+        dec.kill()
     if enc:
         enc.stdin.close()
         if enc.wait():

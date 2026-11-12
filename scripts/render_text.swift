@@ -11,6 +11,14 @@ func col(_ v: Any?) -> NSColor {
                    blue: CGFloat(a[2].doubleValue) / 255, alpha: 1)
 }
 
+func face(_ name: String?, _ size: CGFloat, _ weight: NSFont.Weight) -> NSFont {
+    if let n = name, !n.isEmpty {
+        if weight == .bold, let f = NSFont(name: n + "-Bold", size: size) { return f }
+        if let f = NSFont(name: n, size: size) { return f }
+    }
+    return NSFont.systemFont(ofSize: size, weight: weight)
+}
+
 let data = try! Data(contentsOf: URL(fileURLWithPath: CommandLine.arguments[1]))
 let jobs = try! JSONSerialization.jsonObject(with: data) as! [[String: Any]]
 let opts: NSString.DrawingOptions = [.usesLineFragmentOrigin]
@@ -30,7 +38,7 @@ for j in jobs {
     let header = j["header"] as? String ?? "", body = j["body"] as? String ?? ""
     if !header.isEmpty {
         let hs = NSAttributedString(string: header, attributes: [
-            .font: NSFont.systemFont(ofSize: num(j["header_px"], 24), weight: .bold),
+            .font: face(j["font"] as? String, num(j["header_px"], 24), .bold),
             .foregroundColor: col(j["header_rgb"]), .paragraphStyle: ps])
         let hr = hs.boundingRect(with: NSSize(width: width, height: 10000), options: opts)
         hs.draw(with: NSRect(x: 0, y: top - ceil(hr.height), width: width, height: ceil(hr.height)), options: opts)
@@ -42,7 +50,7 @@ for j in jobs {
         var br: NSRect
         while true {
             bs = NSAttributedString(string: body, attributes: [
-                .font: NSFont.systemFont(ofSize: bpx, weight: .medium),
+                .font: face(j["font"] as? String, bpx, .medium),
                 .foregroundColor: col(j["body_rgb"]), .paragraphStyle: ps])
             br = bs.boundingRect(with: NSSize(width: width, height: 10000), options: opts)
             if br.height <= top || bpx <= minPx { break }

@@ -16,6 +16,9 @@ The project file path with `source` and `crop` set.
 5. Note actions the recording does not show (a field already filled in, a screen already open) so the screenwriter can cover them in words. Note every error message, permission prompt and unexpected screen the recording does show, with its time: these are kept and explained, not cut.
 6. Run `python3 scripts/tap_sheet.py PROJECT` and open every `work/taps_NN.png`. Fix and rerun until every tile is right.
 
+## A re-recorded step
+When one step has its own recording (`source` on the step), spot its taps in that file: `python3 scripts/find_taps.py PROJECT --source FILE`. Its `src` and tap times count from the start of that file. Check the new recording shows the same kind of sample data as the rest, so the video does not change accounts mid-way.
+
 ## Standards
 A tile is right when the red box surrounds the whole control, the control looks untouched (not pressed, not yet changed), and nothing covers it. Check all tiles; one wrong box is the most visible defect a tutorial can have.
 

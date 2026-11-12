@@ -109,7 +109,7 @@ def run(P, lang):
             bad_box.append(name + " (frame missing)")
             continue
         hl = holds[(si, hi)][1]
-        _, box, circ = render.tap_view(P, G, tap, hl / 2, hl)
+        _, box, circ = render.tap_view(P, G, tap, hl / 2, hl, common.view(P, si)["crop"])
         pts = [(int(x + sx), int(y + sy)) for x, y in outline_points(G, render.box_outline(G, box), circ)]
         pts = [p for p in pts if 0 <= p[0] < G.W and 0 <= p[1] < G.H]
         cap = per[f]
